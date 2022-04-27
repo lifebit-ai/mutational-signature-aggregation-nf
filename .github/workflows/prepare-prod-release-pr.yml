@@ -1,0 +1,50 @@
+# What is this gh-action does?
+# This gh-actions makes a dev -> main PR with all the checks and balances for a production release
+# Does this gh-action require any gh-actions-secrets (if yes list them)?
+# No
+
+name: Prepare production release PR
+on:
+  workflow_dispatch: # For manual trigger
+  pull_request:
+    branches: main # In case the dev -> main PR already exist it will just check and balance for a production release
+jobs:
+  action-pull-request:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3.0.1
+        with:
+          fetch-depth: 0
+      - name: Get the last release version
+        id: tagger
+        uses: jimschubert/query-tag-action@v2
+        with:
+          include: 'v*'
+          exclude: 'test-*'
+          skip-unshallow: "true"
+      - name: Get the new release version
+        id: get_version
+        run: |
+          wget -qO- get.nextflow.io | bash
+          sudo mv nextflow /usr/local/bin/
+          echo ::set-output name=release_version::$(echo $(nextflow config -flat | grep manifest.version | sed s/"manifest.version = '"//g | sed s/"'"//g)) 
+      - name: Compare versions
+        id: compare_versions
+        run: |
+          echo "Last release version: ${{ steps.tagger.outputs.tag }}"
+          echo "New release version: ${{ steps.get_version.outputs.release_version }}"
+          if [[ "${{ steps.get_version.outputs.release_version }}" == "${{ steps.tagger.outputs.tag }}" ]]; then 
+            echo "Error: Last and new release needs to be different"
+            exit 1
+          fi
+      - name: Run the Action
+        uses: devops-infra/action-pull-request@v0.4.2
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          title: Release ${{ steps.get_version.outputs.release_version }}
+          template: .github/PULL_REQUEST_TEMPLATE/RELEASE.md
+          source_branch: dev
+          target_branch: main
+          assignee: ${{ github.actor }}
+          label: automatic,release

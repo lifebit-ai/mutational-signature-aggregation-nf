@@ -1,0 +1,46 @@
+# What is this gh-action does?
+# This gh-actions creates a release tag based on nextflow pipeline's version after a production release
+# Does this gh-action require any gh-actions-secrets (if yes list them)?
+# No
+
+name: Create a Release tag
+on:
+  push:
+    branches: main
+jobs:
+  release-tag:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3.0.1
+        with:
+          fetch-depth: 0
+      - name: Get the last release version
+        id: tagger
+        uses: jimschubert/query-tag-action@v2
+        with:
+          include: 'v*'
+          exclude: 'test-*'
+          skip-unshallow: "true"
+      - name: Get the new release version
+        id: get_version
+        run: |
+          wget -qO- get.nextflow.io | bash
+          sudo mv nextflow /usr/local/bin/
+          echo ::set-output name=release_version::$(echo $(nextflow config -flat | grep manifest.version | sed s/"manifest.version = '"//g | sed s/"'"//g)) 
+      - name: Compare versions
+        id: compare_versions
+        run: |
+          echo "Last release version: ${{ steps.tagger.outputs.tag }}"
+          echo "New release version: ${{ steps.get_version.outputs.release_version }}"
+          if [[ "${{ steps.get_version.outputs.release_version }}" == "${{ steps.tagger.outputs.tag }}" ]]; then 
+            echo "Error: Last and new release needs to be different"
+            exit 1
+          fi
+      - name: Create a GitHub release
+        uses: ncipollo/release-action@v1
+        with:
+          tag: ${{ steps.get_version.outputs.release_version }}
+          name: Release ${{ steps.get_version.outputs.release_version }}
+          body: For release notes please check CHANGELOG.md in the repository
+          generateReleaseNotes: true
