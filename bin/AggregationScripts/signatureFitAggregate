@@ -1,0 +1,134 @@
+#!/usr/bin/env Rscript
+
+library(getopt)
+library(signature.tools.lib)
+
+how_to <- function(){
+  message(" ")
+  message("This script aggregates the output from the signatureFit script. It assumes")
+  message("that signatureFit is run for each individual sample separately, with the")
+  message("output placed into a directory called \"sampleName_signature_fit_out/\".")
+  message(" ")
+  message("Run this script as follows:")
+  message(" ")
+  message("signatureFitAggregate [OPTIONS]")
+  message(" ")
+  message("Available options:")
+  message("  -o, --outdir=DIR          Name of the output directory. If omitted a name")
+  message("                              will be given automatically.")
+  message("  -i, --inputdir=IDIR       Name of the input root directory, where the output")
+  message("                              directories of signatureFit are locatetd. The")
+  message("                              directories located in IDIR need to have a name")
+  message("                              like \"sampleName_signature_fit_out/\" where")
+  message("                              sampleName is replaced by the various sample names.")
+  message("  -O, --organ=ORGAN         Name of the organ analysed in the signatureFit.")
+  message("                              This can be omitted.")
+  message("  -h, --help                Show this explanation.")
+  message(" ")
+}
+
+spec = matrix(c(
+  'help',               'h', 0, "logical",
+  'inputdir',           'i', 1, "character",  
+  'outdir',             'o', 1, "character",  
+  'organ',              'O', 1, "character"
+), byrow=TRUE, ncol=4)
+
+# collect the options
+opt = getopt(spec)
+
+if ( !is.null(opt$help) ) {
+  how_to()
+  q(status=0,save = "no")
+}
+
+message("[info signatureFitAggregate script] aggregation script starting!")
+
+if ( is.null(opt$inputdir) ) {
+  message("[error signatureFitAggregate script] missing input directory, check --help for options.")
+  q(status=1,save = "no")
+}else{
+  inputdir <- opt$inputdir
+  if(substr(inputdir,nchar(inputdir),nchar(inputdir))!="/" & substr(inputdir,nchar(inputdir),nchar(inputdir))!="\\"){
+    inputdir <- paste0(inputdir,"/")
+  }
+}
+
+if ( !is.null(opt$outdir) ) {
+  outdir <- opt$outdir
+  if(substr(outdir,nchar(outdir),nchar(outdir))!="/" & substr(outdir,nchar(outdir),nchar(outdir))!="\\"){
+    outdir <- paste0(outdir,"/")
+  }
+}else{
+  outdir <- "signatureFitAggregateResults/"
+}
+
+# organ may be NULL
+organ <- opt$organ
+aggregatedFileRootName <- ""
+if(!is.null(organ)) aggregatedFileRootName <- paste0(organ,"_")
+
+# check if inputdir exists
+if(!dir.exists(inputdir)) {
+  message("[error signatureFitAggregate script] could not find input directory ",inputdir,".")
+  q(status=1,save = "no")
+}
+
+# create outdir if missing
+if(!dir.exists(outdir)) dir.create(outdir,showWarnings = F,recursive = T)
+
+# get signature fit directories
+inputFitdirs <- list.dirs(inputdir,recursive = F,full.names = F)
+inputFitdirs <- inputFitdirs[sapply(inputFitdirs,function(x) substr(x,nchar(x)-17,nchar(x))=="_signature_fit_out")]
+
+# check if we could find any directory as expected
+if(length(inputFitdirs)==0){
+  message("[error signatureFitAggregate script] could not find signatureFit output directories ending with \"_signature_fit_out\" in ",inputdir,".")
+  q(status=1,save = "no")
+}
+
+# get sample names
+sampleNames <- substr(inputFitdirs,1,nchar(inputFitdirs)-18)
+
+# # read and combine catalogues
+# message("[info signatureFitAggregate script] reading and aggregating catalogues...")
+# catalogues <- list()
+# for (sampleName in sampleNames){
+#   catalogues[[sampleName]] <- readTable(paste0(inputdir,sampleName,"_signature_fit_out/catalogues.tsv"))
+# }
+# catalogues <- do.call(cbind,catalogues)
+
+# # save and plot the aggregated catalogues
+# message("[info signatureFitAggregate script] saving aggregated catalogues...")
+# writeTable(t = catalogues,file = paste0(outdir,aggregatedFileRootName,"catalogues.tsv"))
+# plotSignatures(signature_data_matrix = catalogues,output_file = paste0(outdir,aggregatedFileRootName,"catalogues.pdf"))
+
+# read the exposures
+message("[info signatureFitAggregate script] reading and aggregating exposures...")
+exposures_list <- list()
+signaturesSet <- c()
+for (sampleName in sampleNames){
+  exposures_list[[sampleName]] <- readTable(paste0(inputdir,sampleName,"_signature_fit_out/exposures.tsv"))
+  signaturesSet <- union(signaturesSet,colnames(exposures_list[[sampleName]]))
+}
+# move the unassigned column to the end
+if("unassigned" %in% signaturesSet){
+  signaturesSet <- setdiff(signaturesSet,"unassigned")
+  signaturesSet <- c(signaturesSet,"unassigned")
+}
+# combine the exposures
+exposures <- matrix(0,ncol = length(signaturesSet),
+                    nrow = length(sampleNames),
+                    dimnames = list(sampleNames,signaturesSet))
+for (sampleName in sampleNames){
+  exposures[sampleName,colnames(exposures_list[[sampleName]])] <- unlist(exposures_list[[sampleName]])
+}
+exposures_prop <- exposures/matrix(apply(exposures,1,sum),ncol = ncol(exposures),nrow = nrow(exposures),byrow = F)*100
+
+# save and plot the aggregated exposures
+message("[info signatureFitAggregate script] saving aggregated exposures...")
+writeTable(t = exposures,file = paste0(outdir,aggregatedFileRootName,"exposures.tsv"))
+plotExposures(exposures = t(exposures),output_file = paste0(outdir,aggregatedFileRootName,"exposures.pdf"))
+plotExposures(exposures = t(exposures_prop),output_file = paste0(outdir,aggregatedFileRootName,"exposures_prop.pdf"))
+
+message("[info signatureFitAggregate script] done!")

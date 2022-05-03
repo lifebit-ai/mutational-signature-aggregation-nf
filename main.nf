@@ -108,7 +108,7 @@ Channel
 
 projectDir = workflow.projectDir
 
-ch_run_sh_script = Channel.fromPath("${projectDir}/bin/DareUKaggregationScripts/signatureFitAggregate")
+ch_signatureFitAggregate_script = Channel.fromPath("${projectDir}/bin/AggregationScripts/signatureFitAggregate")
 ch_report_dir = Channel.value(file("${projectDir}/bin/report"))
 
 // Define Channels from input
@@ -185,14 +185,14 @@ process signatureFitAggregate {
 
     input:
     file(sigfit_results_dir) from sigfit_results_dir_ch
-    file(run_sh_script) from ch_run_sh_script
+    file(signatureFitAggregate_script) from ch_signatureFitAggregate_script
     
     output:
     file "aggregate_output"
 
     script:
     """
-    Rscript $run_sh_script \
+    Rscript $signatureFitAggregate_script \
       --inputdir $sigfit_results_dir \
       --organ $params.organ \
       --outdir aggregate_output
