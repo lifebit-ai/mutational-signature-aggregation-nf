@@ -10,7 +10,7 @@ output:
     highlight: tango           # specifies the syntax highlighting style
     css: 'style.css'
 params:
-  res_table:  x
+  aggregate_output_dir:  x
 title: "`r paste0('Report title' , '') `"
 author: ""
 date: ""
@@ -33,3 +33,24 @@ library(kableExtra)
 ```
 
 # About
+
+Aggregation report.
+
+# Exposures
+
+## Table
+
+```{r}
+exposures_table_file_name <- list.files(path = params$aggregate_output_dir, pattern = "_exposures.tsv")
+exposures_table_full_path <- paste(params$aggregate_output_dir, exposures_table_file_name, sep="/")
+exposures_table <- read.table(exposures_table_full_path, header = T, sep = "\t")
+DTable(exposures_table)
+```
+
+## Plot
+
+```{r, include = FALSE}
+exposures_pdf_file_name <- list.files(path = params$aggregate_output_dir, pattern = "_exposures.pdf")
+exposures_pdf_full_path <- paste(params$aggregate_output_dir, exposures_pdf_file_name, sep="/")
+knitr::include_graphics(exposures_pdf_full_path)
+```

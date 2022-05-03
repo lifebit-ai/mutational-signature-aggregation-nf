@@ -179,7 +179,7 @@ process signatureFitAggregate {
     file(signatureFitAggregate_script) from ch_signatureFitAggregate_script
     
     output:
-    file "aggregate_output"
+    file "aggregate_output" into ch_aggregate_output
 
     script:
     """
@@ -190,23 +190,23 @@ process signatureFitAggregate {
     """
   }
 
-// process report {
-//     publishDir "${params.outdir}/MultiQC", mode: 'copy'
+process report {
+    publishDir "${params.outdir}/MultiQC", mode: 'copy'
 
-//     input:
-//     file(report_dir) from ch_report_dir
-//     file(table) from ch_out
+    input:
+    file(report_dir) from ch_report_dir
+    file(aggregate_output_dir) from ch_aggregate_output
     
-//     output:
-//     file "multiqc_report.html" into ch_multiqc_report
+    output:
+    file "multiqc_report.html" into ch_multiqc_report
 
-//     script:
-//     """
-//     cp -r ${report_dir}/* .
-//     Rscript -e "rmarkdown::render('report.Rmd',params = list(res_table='$table'))"
-//     mv report.html multiqc_report.html
-//     """
-// }
+    script:
+    """
+    cp -r ${report_dir}/* .
+    Rscript -e "rmarkdown::render('report.Rmd',params = list(aggregate_output_dir='$aggregate_output_dir'))"
+    mv report.html multiqc_report.html
+    """
+}
 
 // When the pipeline is run is not run locally
 // Ensure trace report is output in the pipeline results (in 'pipeline_info' folder)
