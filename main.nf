@@ -108,17 +108,17 @@ Channel
 
 projectDir = workflow.projectDir
 
-ch_run_sh_script = Channel.fromPath("${projectDir}/bin/run.sh")
+ch_run_sh_script = Channel.fromPath("${projectDir}/bin/DareUKaggregationScripts/signatureFitAggregate")
 ch_report_dir = Channel.value(file("${projectDir}/bin/report"))
 
 // Define Channels from input
 
-Channel
-    .fromPath(params.input)
-    .ifEmpty { exit 1, "Cannot find input file : ${params.input}" }
-    .splitCsv(skip:1)
-    .map {sample_name, file_path -> [ sample_name, file_path ] }
-    .set { ch_input }
+// Channel
+//     .fromPath(params.input)
+//     .ifEmpty { exit 1, "Cannot find input file : ${params.input}" }
+//     .splitCsv(skip:1)
+//     .map {sample_name, file_path -> [ sample_name, file_path ] }
+//     .set { ch_input }
 
 
 
@@ -176,56 +176,60 @@ process obtain_pipeline_metadata {
   '''
 }
 
-process step_1 {
-    tag "$sample_name"
+sigfit_results_dir_ch = Channel.fromPath(params.sigfit_results_dir)
+    
+
+process signatureFitAggregate {
     label 'low_memory'
     publishDir "${params.outdir}", mode: 'copy'
 
     input:
-    set val(sample_name), file(input_file) from ch_input
+    file(sigfit_results_dir) from sigfit_results_dir_ch
     file(run_sh_script) from ch_run_sh_script
     
     output:
-    file "input_file_head.txt" into ch_out
+    file "aggregate_output"
 
     script:
     """
-    run.sh
-    head $input_file > input_file_head.txt
+    Rscript $run_sh_script \
+      --inputdir $sigfit_results_dir \
+      --organ $params.organ \
+      --outdir aggregate_output
     """
   }
 
-process report {
-    publishDir "${params.outdir}/MultiQC", mode: 'copy'
+// process report {
+//     publishDir "${params.outdir}/MultiQC", mode: 'copy'
 
-    input:
-    file(report_dir) from ch_report_dir
-    file(table) from ch_out
+//     input:
+//     file(report_dir) from ch_report_dir
+//     file(table) from ch_out
     
-    output:
-    file "multiqc_report.html" into ch_multiqc_report
+//     output:
+//     file "multiqc_report.html" into ch_multiqc_report
 
-    script:
-    """
-    cp -r ${report_dir}/* .
-    Rscript -e "rmarkdown::render('report.Rmd',params = list(res_table='$table'))"
-    mv report.html multiqc_report.html
-    """
-}
+//     script:
+//     """
+//     cp -r ${report_dir}/* .
+//     Rscript -e "rmarkdown::render('report.Rmd',params = list(res_table='$table'))"
+//     mv report.html multiqc_report.html
+//     """
+// }
 
 
 
 // When the pipeline is run is not run locally
 // Ensure trace report is output in the pipeline results (in 'pipeline_info' folder)
 
-userName = workflow.userName
+// userName = workflow.userName
 
-if ( userName == "ubuntu" || userName == "ec2-user") {
-  workflow.onComplete {
+// if ( userName == "ubuntu" || userName == "ec2-user") {
+//   workflow.onComplete {
 
-  def trace_timestamp = new java.util.Date().format( 'yyyy-MM-dd_HH-mm-ss')
+//   def trace_timestamp = new java.util.Date().format( 'yyyy-MM-dd_HH-mm-ss')
 
-  traceReport = file("/home/${userName}/nf-out/trace.txt")
-  traceReport.copyTo("results/pipeline_info/execution_trace_${trace_timestamp}.txt")
-  }
-}
+//   traceReport = file("/home/${userName}/nf-out/trace.txt")
+//   traceReport.copyTo("results/pipeline_info/execution_trace_${trace_timestamp}.txt")
+//   }
+// }
