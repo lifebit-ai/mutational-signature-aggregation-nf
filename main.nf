@@ -54,6 +54,8 @@ summary['Launch dir']                                  = workflow.launchDir
 summary['Working dir']                                 = workflow.workDir
 summary['Script dir']                                  = workflow.projectDir
 summary['User']                                        = workflow.userName
+summary['mutational-signature-nf outptut path']        = params.sigfit_results_dir
+summary['organ']                                       = params.organ
 
 log.info summary.collect { k,v -> "${k.padRight(18)}: $v" }.join("\n")
 log.info "-\033[2m--------------------------------------------------\033[0m-"
@@ -112,15 +114,7 @@ ch_signatureFitAggregate_script = Channel.fromPath("${projectDir}/bin/Aggregatio
 ch_report_dir = Channel.value(file("${projectDir}/bin/report"))
 
 // Define Channels from input
-
-// Channel
-//     .fromPath(params.input)
-//     .ifEmpty { exit 1, "Cannot find input file : ${params.input}" }
-//     .splitCsv(skip:1)
-//     .map {sample_name, file_path -> [ sample_name, file_path ] }
-//     .set { ch_input }
-
-
+sigfit_results_dir_ch = Channel.fromPath(params.sigfit_results_dir)
 
 /*-----------
   Processes  
@@ -176,9 +170,6 @@ process obtain_pipeline_metadata {
   '''
 }
 
-sigfit_results_dir_ch = Channel.fromPath(params.sigfit_results_dir)
-    
-
 process signatureFitAggregate {
     label 'low_memory'
     publishDir "${params.outdir}", mode: 'copy'
@@ -216,8 +207,6 @@ process signatureFitAggregate {
 //     mv report.html multiqc_report.html
 //     """
 // }
-
-
 
 // When the pipeline is run is not run locally
 // Ensure trace report is output in the pipeline results (in 'pipeline_info' folder)
