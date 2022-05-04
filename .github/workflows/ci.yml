@@ -22,6 +22,7 @@ jobs:
           sudo mv nextflow /usr/local/bin/
       - name: Basic workflow tests
         run: |
+          export NXF_DEFAULT_DSL=1
           nextflow run ${GITHUB_WORKSPACE} --config conf/test.config
   singularity:
     runs-on: ubuntu-latest
@@ -42,4 +43,5 @@ jobs:
           sudo mv nextflow /usr/local/bin/
       - name: Basic workflow tests
         run: |
+          export NXF_DEFAULT_DSL=1
           nextflow run ${GITHUB_WORKSPACE} -profile test,singularity
