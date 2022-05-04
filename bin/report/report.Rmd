@@ -11,7 +11,7 @@ output:
     css: 'style.css'
 params:
   aggregate_output_dir:  x
-title: "`r paste0('Report title' , '') `"
+title: "`r paste0('Mutation Signature Analysis Aggregated Report' , '') `"
 author: ""
 date: ""
 ---
@@ -34,7 +34,7 @@ library(kableExtra)
 
 # About
 
-Aggregation report.
+This report is generated after running [mutational-signature](https://github.com/lifebit-ai/mutational-signature-nf) pipeline.
 
 # Exposures
 
