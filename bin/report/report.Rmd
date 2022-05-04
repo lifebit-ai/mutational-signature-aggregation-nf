@@ -44,13 +44,17 @@ This report is generated after running [mutational-signature](https://github.com
 exposures_table_file_name <- list.files(path = params$aggregate_output_dir, pattern = "_exposures.tsv")
 exposures_table_full_path <- paste(params$aggregate_output_dir, exposures_table_file_name, sep="/")
 exposures_table <- read.table(exposures_table_full_path, header = T, sep = "\t")
-DTable(exposures_table)
+sample_names <- rownames(exposures_table)
+exposures_table_new <- cbind(sample_names, exposures_table)
+DTable(exposures_table_new)
 ```
 
 ## Plot
 
-```{r, include = FALSE}
+```{r, include = TRUE, fig.align="center"}
 exposures_pdf_file_name <- list.files(path = params$aggregate_output_dir, pattern = "_exposures.pdf")
 exposures_pdf_full_path <- paste(params$aggregate_output_dir, exposures_pdf_file_name, sep="/")
 knitr::include_graphics(exposures_pdf_full_path)
 ```
+
+This report is genrated from [mutational-signature-aggregation-nf](https://github.com/lifebit-ai/mutational-signature-aggregation-nf) pipeline.
