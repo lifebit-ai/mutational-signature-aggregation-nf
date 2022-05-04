@@ -24,24 +24,3 @@ jobs:
         run: |
           export NXF_DEFAULT_DSL=1
           nextflow run ${GITHUB_WORKSPACE} --config conf/test.config
-  singularity:
-    runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        singularity_version: ['3.6.4']
-        nxf_ver: ['20.01.0', '']
-    steps:
-      - uses: actions/checkout@v3.0.1
-      - uses: eWaterCycle/setup-singularity@v7
-        with:
-          singularity-version: ${{ matrix.singularity_version }}
-      - name: Install Nextflow
-        run: |
-          export NXF_VER=${{ matrix.nxf_ver }}
-          wget -qO- get.nextflow.io | bash
-          sudo mv nextflow /usr/local/bin/
-      - name: Basic workflow tests
-        run: |
-          export NXF_DEFAULT_DSL=1
-          nextflow run ${GITHUB_WORKSPACE} -profile test,singularity
