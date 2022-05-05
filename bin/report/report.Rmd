@@ -51,7 +51,7 @@ DTable(exposures_table_new)
 
 ## Plot
 
-```{r, include = TRUE, fig.align="center"}
+```{r, include = TRUE, fig.align="center", out.width = "800px", out.height = "800px"}
 exposures_pdf_file_name <- list.files(path = params$aggregate_output_dir, pattern = "_exposures.pdf")
 exposures_pdf_full_path <- paste(params$aggregate_output_dir, exposures_pdf_file_name, sep="/")
 knitr::include_graphics(exposures_pdf_full_path)
