@@ -54,6 +54,8 @@ summary['Launch dir']                                  = workflow.launchDir
 summary['Working dir']                                 = workflow.workDir
 summary['Script dir']                                  = workflow.projectDir
 summary['User']                                        = workflow.userName
+summary['mutational-signature-nf outptut path']        = params.sigfit_results_dir
+summary['organ']                                       = params.organ
 
 log.info summary.collect { k,v -> "${k.padRight(18)}: $v" }.join("\n")
 log.info "-\033[2m--------------------------------------------------\033[0m-"
@@ -108,19 +110,11 @@ Channel
 
 projectDir = workflow.projectDir
 
-ch_run_sh_script = Channel.fromPath("${projectDir}/bin/run.sh")
+ch_signatureFitAggregate_script = Channel.fromPath("${projectDir}/bin/AggregationScripts/signatureFitAggregate")
 ch_report_dir = Channel.value(file("${projectDir}/bin/report"))
 
 // Define Channels from input
-
-Channel
-    .fromPath(params.input)
-    .ifEmpty { exit 1, "Cannot find input file : ${params.input}" }
-    .splitCsv(skip:1)
-    .map {sample_name, file_path -> [ sample_name, file_path ] }
-    .set { ch_input }
-
-
+sigfit_results_dir_ch = Channel.fromPath(params.sigfit_results_dir)
 
 /*-----------
   Processes  
@@ -176,22 +170,23 @@ process obtain_pipeline_metadata {
   '''
 }
 
-process step_1 {
-    tag "$sample_name"
+process signatureFitAggregate {
     label 'low_memory'
     publishDir "${params.outdir}", mode: 'copy'
 
     input:
-    set val(sample_name), file(input_file) from ch_input
-    file(run_sh_script) from ch_run_sh_script
+    file(sigfit_results_dir) from sigfit_results_dir_ch
+    file(signatureFitAggregate_script) from ch_signatureFitAggregate_script
     
     output:
-    file "input_file_head.txt" into ch_out
+    file "aggregate_output" into ch_aggregate_output
 
     script:
     """
-    run.sh
-    head $input_file > input_file_head.txt
+    Rscript $signatureFitAggregate_script \
+      --inputdir $sigfit_results_dir \
+      --organ $params.organ \
+      --outdir aggregate_output
     """
   }
 
@@ -200,7 +195,7 @@ process report {
 
     input:
     file(report_dir) from ch_report_dir
-    file(table) from ch_out
+    file(aggregate_output_dir) from ch_aggregate_output
     
     output:
     file "multiqc_report.html" into ch_multiqc_report
@@ -208,24 +203,22 @@ process report {
     script:
     """
     cp -r ${report_dir}/* .
-    Rscript -e "rmarkdown::render('report.Rmd',params = list(res_table='$table'))"
+    Rscript -e "rmarkdown::render('report.Rmd',params = list(aggregate_output_dir='$aggregate_output_dir'))"
     mv report.html multiqc_report.html
     """
 }
 
-
-
 // When the pipeline is run is not run locally
 // Ensure trace report is output in the pipeline results (in 'pipeline_info' folder)
 
-userName = workflow.userName
+// userName = workflow.userName
 
-if ( userName == "ubuntu" || userName == "ec2-user") {
-  workflow.onComplete {
+// if ( userName == "ubuntu" || userName == "ec2-user") {
+//   workflow.onComplete {
 
-  def trace_timestamp = new java.util.Date().format( 'yyyy-MM-dd_HH-mm-ss')
+//   def trace_timestamp = new java.util.Date().format( 'yyyy-MM-dd_HH-mm-ss')
 
-  traceReport = file("/home/${userName}/nf-out/trace.txt")
-  traceReport.copyTo("results/pipeline_info/execution_trace_${trace_timestamp}.txt")
-  }
-}
+//   traceReport = file("/home/${userName}/nf-out/trace.txt")
+//   traceReport.copyTo("results/pipeline_info/execution_trace_${trace_timestamp}.txt")
+//   }
+// }
