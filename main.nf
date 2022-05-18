@@ -203,6 +203,11 @@ process report {
     script:
     """
     cp -r ${report_dir}/* .
+    # convert from pdf to png
+    for f in \$(ls $aggregate_output_dir/*.pdf); do
+       pdftoppm \$f -png > $aggregate_output_dir/\$(echo \$(basename \$f | cut -d. -f1)).png
+    done
+
     Rscript -e "rmarkdown::render('report.Rmd',params = list(aggregate_output_dir='$aggregate_output_dir'))"
     mv report.html multiqc_report.html
     """
