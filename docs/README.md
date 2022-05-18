@@ -1,26 +1,35 @@
-# template-nf
+# mutational-signature-aggregation-nf
 
 <!-- This README.md is the single page user documentation for this pipeline. -->
 
-This is a template nextflow pipeline.
+This is a nexflow pipeline which aggregates the results from [mutational-signature-nf](https://github.com/lifebit-ai/mutational-signature-nf) pipeline and produce combined table and plots.
 
 ## Pipeline description
 
 ## Input
 
-Describe all the input for the pipeline
+There are two primary input paramrters - 
+
+### Parameters
+
+| param | default | description | 
+|---|---|---|
+| sigfit_results_dir | null | The results output directory from [mutational-signature-nf] pipeline |
+| organ | "Breast" | Which organ was used while running [mutational-signature-nf] pipeline |
 
 ## Output
 
-Describe all the input for the pipeline
+Output generates a table (TSV file) and plot with combined results of all the samples from [mutational-signature-nf] pipeline run. Also present them in a HTML report format.
 
 ## Usage
 
-Describe how this pipeline runs
+```bash
+nextflow run main.nf \
+    --sigfit_results_dir "s3://lifebit-featured-datasets/pipelines/mutational-signature-nf/example-output/sigfit_results_out/" \
+    --organ "Breast"
+```
 
-## Options
-
-Check the pipeline help section (`nextflow main.nf --help`) for all the updated options and their default values.
+[mutational-signature-nf]: https://github.com/lifebit-ai/mutational-signature-nf
 
 <!-- For Sphinx doc, This option will be auto rendered help() section from Nextflow main.nf in the doc build -->
 
