@@ -46,9 +46,7 @@ Analysis aggregation results for single-nucleotide variants (SNV)
 exposures_table_file_name <- list.files(path = params$aggregate_output_dir, pattern = "snv_summaryStats.tsv")
 exposures_table_full_path <- paste(params$aggregate_output_dir, exposures_table_file_name, sep="/")
 exposures_table <- read.table(exposures_table_full_path, header = T, sep = "\t")
-sample_names <- rownames(exposures_table)
-exposures_table_new <- cbind(sample_names, exposures_table)
-DTable(exposures_table_new)
+DTable(exposures_table)
 ```
 
 ### Exposures
@@ -78,9 +76,7 @@ Analysis aggregation results for structural variants (SV)
 exposures_table_file_name <- list.files(path = params$aggregate_output_dir, pattern = "sv_summaryStats.tsv")
 exposures_table_full_path <- paste(params$aggregate_output_dir, exposures_table_file_name, sep="/")
 exposures_table <- read.table(exposures_table_full_path, header = T, sep = "\t")
-sample_names <- rownames(exposures_table)
-exposures_table_new <- cbind(sample_names, exposures_table)
-DTable(exposures_table_new)
+DTable(exposures_table)
 ```
 
 ### Exposures
