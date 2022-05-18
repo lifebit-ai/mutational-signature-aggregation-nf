@@ -36,12 +36,14 @@ library(kableExtra)
 
 This report is generated after running [mutational-signature](https://github.com/lifebit-ai/mutational-signature-nf) pipeline.
 
-# Exposures
+## SNV 
 
-## Table
+Analysis aggregation results for single-nucleotide variants (SNV)
+
+### Summary Stats
 
 ```{r}
-exposures_table_file_name <- list.files(path = params$aggregate_output_dir, pattern = "_exposures.tsv")
+exposures_table_file_name <- list.files(path = params$aggregate_output_dir, pattern = "snv_summaryStats.tsv")
 exposures_table_full_path <- paste(params$aggregate_output_dir, exposures_table_file_name, sep="/")
 exposures_table <- read.table(exposures_table_full_path, header = T, sep = "\t")
 sample_names <- rownames(exposures_table)
@@ -49,12 +51,53 @@ exposures_table_new <- cbind(sample_names, exposures_table)
 DTable(exposures_table_new)
 ```
 
-## Plot
+### Exposures
 
-```{r, include = TRUE, fig.align="center", out.width = "800px", out.height = "800px"}
-exposures_pdf_file_name <- list.files(path = params$aggregate_output_dir, pattern = "_exposures.pdf")
-exposures_pdf_full_path <- paste(params$aggregate_output_dir, exposures_pdf_file_name, sep="/")
-knitr::include_graphics(exposures_pdf_full_path)
+```{r}
+exposures_table_file_name <- list.files(path = params$aggregate_output_dir, pattern = "snv_exposures.tsv")
+exposures_table_full_path <- paste(params$aggregate_output_dir, exposures_table_file_name, sep="/")
+exposures_table <- read.table(exposures_table_full_path, header = T, sep = "\t")
+sample_names <- rownames(exposures_table)
+exposures_table_new <- cbind(sample_names, exposures_table)
+DTable(exposures_table_new)
+```
+
+```{r, include = TRUE, fig.align="center"}
+exposures_png_file_name <- list.files(path = params$aggregate_output_dir, pattern = "snv_exposures.png")
+exposures_png_full_path <- paste(params$aggregate_output_dir, exposures_png_file_name, sep="/")
+knitr::include_graphics(exposures_png_full_path)
+```
+
+## SV 
+
+Analysis aggregation results for structural variants (SV)
+
+### Summary Stats
+
+```{r}
+exposures_table_file_name <- list.files(path = params$aggregate_output_dir, pattern = "sv_summaryStats.tsv")
+exposures_table_full_path <- paste(params$aggregate_output_dir, exposures_table_file_name, sep="/")
+exposures_table <- read.table(exposures_table_full_path, header = T, sep = "\t")
+sample_names <- rownames(exposures_table)
+exposures_table_new <- cbind(sample_names, exposures_table)
+DTable(exposures_table_new)
+```
+
+### Exposures
+
+```{r}
+exposures_table_file_name <- list.files(path = params$aggregate_output_dir, pattern = "sv_exposures.tsv")
+exposures_table_full_path <- paste(params$aggregate_output_dir, exposures_table_file_name, sep="/")
+exposures_table <- read.table(exposures_table_full_path, header = T, sep = "\t")
+sample_names <- rownames(exposures_table)
+exposures_table_new <- cbind(sample_names, exposures_table)
+DTable(exposures_table_new)
+```
+
+```{r, include = TRUE, fig.align="center"}
+exposures_png_file_name <- list.files(path = params$aggregate_output_dir, pattern = "sv_exposures.png")
+exposures_png_full_path <- paste(params$aggregate_output_dir, exposures_png_file_name, sep="/")
+knitr::include_graphics(exposures_png_full_path)
 ```
 
 This report is genrated from [mutational-signature-aggregation-nf](https://github.com/lifebit-ai/mutational-signature-aggregation-nf) pipeline.

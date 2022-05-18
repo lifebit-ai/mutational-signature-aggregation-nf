@@ -79,56 +79,91 @@ if(!dir.exists(outdir)) dir.create(outdir,showWarnings = F,recursive = T)
 
 # get signature fit directories
 inputFitdirs <- list.dirs(inputdir,recursive = F,full.names = F)
-inputFitdirs <- inputFitdirs[sapply(inputFitdirs,function(x) substr(x,nchar(x)-17,nchar(x))=="_signature_fit_out")]
+#check for mtype folders
+inputFitdirs <- intersect(inputFitdirs,c("snv","sv"))
 
-# check if we could find any directory as expected
-if(length(inputFitdirs)==0){
-  message("[error signatureFitAggregate script] could not find signatureFit output directories ending with \"_signature_fit_out\" in ",inputdir,".")
-  q(status=1,save = "no")
+for (mtype in inputFitdirs){
+  inputdirMtype <- paste0(inputdir,"/",mtype,"/")
+  inputFitdirsMtype <- list.dirs(inputdirMtype,recursive = F,full.names = F)
+  inputFitdirsMtype <- inputFitdirsMtype[sapply(inputFitdirsMtype,function(x) substr(x,nchar(x)-17,nchar(x))=="_signature_fit_out")]
+  
+  # check if we could find any directory as expected
+  if(length(inputFitdirsMtype)==0){
+    message("[error signatureFitAggregate script] could not find signatureFit output directories ending with \"_signature_fit_out\" in ",inputdirMtype,".")
+    q(status=1,save = "no")
+  }
+  
+  # get sample names
+  sampleNames <- substr(inputFitdirsMtype,1,nchar(inputFitdirsMtype)-18)
+  
+  # read and combine catalogues
+  message("[info signatureFitAggregate script] reading and aggregating catalogues...")
+  catalogues <- list()
+  cataloguesPresent <- FALSE
+  for (sampleName in sampleNames){
+    cataloguesFile <- paste0(inputdirMtype,sampleName,"_signature_fit_out/catalogues.tsv")
+    if(file.exists(cataloguesFile)){
+      cataloguesPresent <- TRUE
+      catalogues[[sampleName]] <- readTable(cataloguesFile)
+    }
+  }
+  if(cataloguesPresent){
+    # combine catalogues
+    catalogues <- do.call(cbind,catalogues)
+    # save and plot the aggregated catalogues
+    message("[info signatureFitAggregate script] saving aggregated catalogues...")
+    writeTable(t = catalogues,file = paste0(outdir,aggregatedFileRootName,mtype,"_catalogues.tsv"))
+    plotSignatures(signature_data_matrix = catalogues,output_file = paste0(outdir,aggregatedFileRootName,mtype,"_catalogues.pdf"))
+    
+  }else{
+    message("[warning signatureFitAggregate script] catalogues not found, skip.")
+  }
+
+  # read the exposures
+  message("[info signatureFitAggregate script] reading and aggregating exposures...")
+  exposures_list <- list()
+  signaturesSet <- c()
+  for (sampleName in sampleNames){
+    exposures_list[[sampleName]] <- readTable(paste0(inputdirMtype,sampleName,"_signature_fit_out/exposures.tsv"))
+    signaturesSet <- union(signaturesSet,colnames(exposures_list[[sampleName]]))
+  }
+  # move the unassigned column to the end
+  if("unassigned" %in% signaturesSet){
+    signaturesSet <- setdiff(signaturesSet,"unassigned")
+    signaturesSet <- c(signaturesSet,"unassigned")
+  }
+  # combine the exposures
+  exposures <- matrix(0,ncol = length(signaturesSet),
+                      nrow = length(sampleNames),
+                      dimnames = list(sampleNames,signaturesSet))
+  for (sampleName in sampleNames){
+    exposures[sampleName,colnames(exposures_list[[sampleName]])] <- unlist(exposures_list[[sampleName]])
+  }
+  exposures_prop <- exposures/matrix(apply(exposures,1,sum),ncol = ncol(exposures),nrow = nrow(exposures),byrow = F)*100
+  
+  # save and plot the aggregated exposures
+  message("[info signatureFitAggregate script] saving aggregated exposures...")
+  writeTable(t = exposures,file = paste0(outdir,aggregatedFileRootName,mtype,"_exposures.tsv"))
+  plotExposures(exposures = t(exposures),output_file = paste0(outdir,aggregatedFileRootName,mtype,"_exposures.pdf"))
+  plotExposures(exposures = t(exposures_prop),output_file = paste0(outdir,aggregatedFileRootName,mtype,"_exposures_prop.pdf"))
+
+  # compute some additional aggregation info for this run
+  tmpexposures <- exposures[,-ncol(exposures),drop=F]
+  medianMutations <- apply(tmpexposures,2,median)
+  propOfSamples <- apply(tmpexposures,2,function(x){
+    sum(x>0)/length(x)
+  })
+  nOfSamples <- apply(tmpexposures,2,function(x){
+    sum(x>0)
+  })
+  # combine
+  summaryStats <- data.frame(signature = colnames(tmpexposures),
+                             medianNumberOfMutations = medianMutations,
+                             proportionOfSamplesWithSignature = propOfSamples,
+                             numberOfSamplesWithSignature = nOfSamples,
+                             stringsAsFactors = F,check.names = F)
+  write.table(x = summaryStats,file = paste0(outdir,aggregatedFileRootName,mtype,"_summaryStats.tsv"),
+              quote = F,sep = "\t",col.names = T,row.names = F)
 }
-
-# get sample names
-sampleNames <- substr(inputFitdirs,1,nchar(inputFitdirs)-18)
-
-# # read and combine catalogues
-# message("[info signatureFitAggregate script] reading and aggregating catalogues...")
-# catalogues <- list()
-# for (sampleName in sampleNames){
-#   catalogues[[sampleName]] <- readTable(paste0(inputdir,sampleName,"_signature_fit_out/catalogues.tsv"))
-# }
-# catalogues <- do.call(cbind,catalogues)
-
-# # save and plot the aggregated catalogues
-# message("[info signatureFitAggregate script] saving aggregated catalogues...")
-# writeTable(t = catalogues,file = paste0(outdir,aggregatedFileRootName,"catalogues.tsv"))
-# plotSignatures(signature_data_matrix = catalogues,output_file = paste0(outdir,aggregatedFileRootName,"catalogues.pdf"))
-
-# read the exposures
-message("[info signatureFitAggregate script] reading and aggregating exposures...")
-exposures_list <- list()
-signaturesSet <- c()
-for (sampleName in sampleNames){
-  exposures_list[[sampleName]] <- readTable(paste0(inputdir,sampleName,"_signature_fit_out/exposures.tsv"))
-  signaturesSet <- union(signaturesSet,colnames(exposures_list[[sampleName]]))
-}
-# move the unassigned column to the end
-if("unassigned" %in% signaturesSet){
-  signaturesSet <- setdiff(signaturesSet,"unassigned")
-  signaturesSet <- c(signaturesSet,"unassigned")
-}
-# combine the exposures
-exposures <- matrix(0,ncol = length(signaturesSet),
-                    nrow = length(sampleNames),
-                    dimnames = list(sampleNames,signaturesSet))
-for (sampleName in sampleNames){
-  exposures[sampleName,colnames(exposures_list[[sampleName]])] <- unlist(exposures_list[[sampleName]])
-}
-exposures_prop <- exposures/matrix(apply(exposures,1,sum),ncol = ncol(exposures),nrow = nrow(exposures),byrow = F)*100
-
-# save and plot the aggregated exposures
-message("[info signatureFitAggregate script] saving aggregated exposures...")
-writeTable(t = exposures,file = paste0(outdir,aggregatedFileRootName,"exposures.tsv"))
-plotExposures(exposures = t(exposures),output_file = paste0(outdir,aggregatedFileRootName,"exposures.pdf"))
-plotExposures(exposures = t(exposures_prop),output_file = paste0(outdir,aggregatedFileRootName,"exposures_prop.pdf"))
 
 message("[info signatureFitAggregate script] done!")
