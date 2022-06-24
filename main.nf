@@ -117,7 +117,6 @@ ch_report_dir = Channel.value(file("${projectDir}/bin/report"))
 sigfit_results_dir = params.sigfit_results_dir.split(',').collect()
 sigfit_results_dir_ch = Channel
                         .fromPath(sigfit_results_dir)
-                        .collect()
 
 /*-----------
   Processes  
@@ -173,9 +172,25 @@ process obtain_pipeline_metadata {
   '''
 }
 
-process collectResults {
+// not to have same name collision for "results" directory sufix
+process stageResults {
     input:
     file(sigfit_results_dir) from sigfit_results_dir_ch
+
+    output:
+    file("staged_result_${uuid}") into staged_sigfit_results_dir_ch
+
+    script:
+    uuid = UUID.randomUUID().toString()
+    """
+    mkdir staged_result_${uuid}
+    cp -r $sigfit_results_dir/* staged_result_${uuid}/
+    """
+}
+
+process collectResults {
+    input:
+    file(sigfit_results_dir) from staged_sigfit_results_dir_ch.collect()
 
     output:
     file("all_results") into all_sigfit_results_dir_ch
