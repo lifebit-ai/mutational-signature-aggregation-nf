@@ -114,7 +114,10 @@ ch_signatureFitAggregate_script = Channel.fromPath("${projectDir}/bin/Aggregatio
 ch_report_dir = Channel.value(file("${projectDir}/bin/report"))
 
 // Define Channels from input
-sigfit_results_dir_ch = Channel.fromPath(params.sigfit_results_dir)
+sigfit_results_dir = params.sigfit_results_dir.split(',').collect()
+sigfit_results_dir_ch = Channel
+                        .fromPath(sigfit_results_dir)
+                        .collect()
 
 /*-----------
   Processes  
@@ -170,12 +173,33 @@ process obtain_pipeline_metadata {
   '''
 }
 
+process collectResults {
+    input:
+    file(sigfit_results_dir) from sigfit_results_dir_ch
+
+    output:
+    file("all_results") into all_sigfit_results_dir_ch
+
+    script:
+    """
+    mkdir all_snv
+    cp -r */snv/* all_snv/
+    mkdir all_sv
+    cp -r */sv/* all_sv/
+    mkdir all_results
+    mkdir all_results/snv
+    mkdir all_results/sv
+    mv all_snv/* all_results/snv/
+    mv all_sv/* all_results/sv/
+    """
+}
+
 process signatureFitAggregate {
     label 'low_memory'
     publishDir "${params.outdir}", mode: 'copy'
 
     input:
-    file(sigfit_results_dir) from sigfit_results_dir_ch
+    file(sigfit_results_dir) from all_sigfit_results_dir_ch
     file(signatureFitAggregate_script) from ch_signatureFitAggregate_script
     
     output:

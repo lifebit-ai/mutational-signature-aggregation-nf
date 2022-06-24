@@ -14,7 +14,7 @@ There are two primary input paramrters -
 
 | param | default | description | 
 |---|---|---|
-| sigfit_results_dir | null | The results output directory from [mutational-signature-nf] pipeline |
+| sigfit_results_dir | null | The results output directory from [mutational-signature-nf] pipeline, mutiple URI paths separated by coma |
 | organ | "Breast" | Which organ was used while running [mutational-signature-nf] pipeline |
 
 ## Output
@@ -23,9 +23,14 @@ Output generates a table (TSV file) and plot with combined results of all the sa
 
 ## Usage
 
+Collect mutiple TRE results s3 bucket as shown in the example bellow - 
+
+* TRE-1 results - `s3://lifebit-featured-datasets/pipelines/mutational-signature-nf/example-output/sigfit_results_out_v2/`
+* TRE-2 results - `s3://lifebit-featured-datasets/pipelines/mutational-signature-nf/example-output/sigfit_results_out_v2_copy_3/`
+
 ```bash
 nextflow run main.nf \
-    --sigfit_results_dir "s3://lifebit-featured-datasets/pipelines/mutational-signature-nf/example-output/sigfit_results_out/" \
+    --sigfit_results_dir "s3://lifebit-featured-datasets/pipelines/mutational-signature-nf/example-output/sigfit_results_out_v2/,s3://lifebit-featured-datasets/pipelines/mutational-signature-nf/example-output/sigfit_results_out_v2_copy_3/" \
     --organ "Breast"
 ```
 
