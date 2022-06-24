@@ -172,7 +172,7 @@ process obtain_pipeline_metadata {
   '''
 }
 
-// not to have same directory name "results" collision
+// not to have same name collision for "results" directory sufix
 process stageResults {
     input:
     file(sigfit_results_dir) from sigfit_results_dir_ch
@@ -183,7 +183,6 @@ process stageResults {
     script:
     uuid = UUID.randomUUID().toString()
     """
-    #uuid=\$(uuidgen)
     mkdir staged_result_${uuid}
     cp -r $sigfit_results_dir/* staged_result_${uuid}/
     """
