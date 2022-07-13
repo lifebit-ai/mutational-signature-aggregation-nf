@@ -196,16 +196,28 @@ process collectResults {
     file("all_results") into all_sigfit_results_dir_ch
 
     script:
+    // collect all samples present in "snv" and "sv" results to single folder, 
+    // so they can be parsed by next step
     """
-    mkdir all_snv
-    cp -r */snv/* all_snv/
-    mkdir all_sv
-    cp -r */sv/* all_sv/
     mkdir all_results
-    mkdir all_results/snv
-    mkdir all_results/sv
-    mv all_snv/* all_results/snv/
-    mv all_sv/* all_results/sv/
+
+    # for snv folder
+    if [ -d */snv ]; then
+      echo "INFO: Collecting snv folders"
+      mkdir all_snv
+      cp -r */snv/* all_snv/
+      mkdir all_results/snv
+      mv all_snv/* all_results/snv/
+    fi
+    
+    # for sv folder
+    if [ -d */sv ]; then
+      echo "INFO: Collecting sv folders"
+      mkdir all_sv
+      cp -r */sv/* all_sv/
+      mkdir all_results/sv
+      mv all_sv/* all_results/sv/
+    fi
     """
 }
 
