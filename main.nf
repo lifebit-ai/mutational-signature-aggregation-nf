@@ -202,7 +202,7 @@ process collectResults {
     mkdir all_results
 
     # for snv folder
-    if [ -d */snv ]; then
+    if [[ -d */snv ]]; then
       echo "INFO: Collecting snv folders"
       mkdir all_snv
       cp -r */snv/* all_snv/
@@ -211,7 +211,7 @@ process collectResults {
     fi
     
     # for sv folder
-    if [ -d */sv ]; then
+    if [[ -d */sv ]]; then
       echo "INFO: Collecting sv folders"
       mkdir all_sv
       cp -r */sv/* all_sv/
