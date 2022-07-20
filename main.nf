@@ -220,7 +220,7 @@ process collectResults {
       mv all_sv/* all_results/sv/
     fi
 
-    echo "INFO: Current contents of all_results folder
+    echo "INFO: Current contents of all_results folder"
     ls -la all_results
     """
 }
