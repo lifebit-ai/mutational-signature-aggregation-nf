@@ -199,6 +199,8 @@ process collectResults {
     // collect all samples present in "snv" and "sv" results to single folder, 
     // so they can be parsed by next step
     """
+    echo "INFO: Check any files existance at the beginning"
+    ls -la 
     mkdir all_results
     echo "INFO: all_results folder got created"
 
