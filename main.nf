@@ -200,6 +200,7 @@ process collectResults {
     // so they can be parsed by next step
     """
     mkdir all_results
+    echo "INFO: all_results folder got created"
 
     # for snv folder
     if [[ -d */snv ]]; then
@@ -218,6 +219,9 @@ process collectResults {
       mkdir all_results/sv
       mv all_sv/* all_results/sv/
     fi
+
+    echo "INFO: Current contents of all_results folder
+    ls -la all_results
     """
 }
 
