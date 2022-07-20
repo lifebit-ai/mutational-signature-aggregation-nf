@@ -200,7 +200,7 @@ process collectResults {
     // so they can be parsed by next step
     """
     echo "INFO: Check any files existance at the beginning"
-    ls -la 
+    find * 
     mkdir all_results
     echo "INFO: all_results folder got created"
 
