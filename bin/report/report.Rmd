@@ -42,28 +42,40 @@ Analysis aggregation results for single-nucleotide variants (SNV)
 
 ### Summary Stats
 
-```{r}
+```{r snv_summary_table}
 exposures_table_file_name <- list.files(path = params$aggregate_output_dir, pattern = "snv_summaryStats.tsv")
-exposures_table_full_path <- paste(params$aggregate_output_dir, exposures_table_file_name, sep="/")
-exposures_table <- read.table(exposures_table_full_path, header = T, sep = "\t")
-DTable(exposures_table)
+if(!length(exposures_table_file_name) == 0){
+  exposures_table_full_path <- paste(params$aggregate_output_dir, exposures_table_file_name, sep="/")
+  exposures_table <- read.table(exposures_table_full_path, header = T, sep = "\t")
+  DTable(exposures_table)
+}else{
+  message("No SNV info provided in input")
+}
 ```
 
 ### Exposures
 
-```{r}
+```{r snv_exposure_table}
 exposures_table_file_name <- list.files(path = params$aggregate_output_dir, pattern = "snv_exposures.tsv")
-exposures_table_full_path <- paste(params$aggregate_output_dir, exposures_table_file_name, sep="/")
-exposures_table <- read.table(exposures_table_full_path, header = T, sep = "\t")
-sample_names <- rownames(exposures_table)
-exposures_table_new <- cbind(sample_names, exposures_table)
-DTable(exposures_table_new)
+if(!length(exposures_table_file_name) == 0){
+  exposures_table_full_path <- paste(params$aggregate_output_dir, exposures_table_file_name, sep="/")
+  exposures_table <- read.table(exposures_table_full_path, header = T, sep = "\t")
+  sample_names <- rownames(exposures_table)
+  exposures_table_new <- cbind(sample_names, exposures_table)
+  DTable(exposures_table_new)
+}else{
+  message("No SNV info provided in input")
+}
 ```
 
-```{r, include = TRUE, fig.align="center"}
+```{r snv_exposure_plot, include = TRUE, fig.align="center"}
 exposures_png_file_name <- list.files(path = params$aggregate_output_dir, pattern = "snv_exposures.png")
-exposures_png_full_path <- paste(params$aggregate_output_dir, exposures_png_file_name, sep="/")
-knitr::include_graphics(exposures_png_full_path)
+if(!length(exposures_png_file_name) == 0){
+  exposures_png_full_path <- paste(params$aggregate_output_dir, exposures_png_file_name, sep="/")
+  knitr::include_graphics(exposures_png_full_path)
+}else{
+  message("No SNV info provided in input")
+}
 ```
 
 ## SV 
@@ -72,28 +84,40 @@ Analysis aggregation results for structural variants (SV)
 
 ### Summary Stats
 
-```{r}
+```{r sv_summary_table}
 exposures_table_file_name <- list.files(path = params$aggregate_output_dir, pattern = "sv_summaryStats.tsv")
-exposures_table_full_path <- paste(params$aggregate_output_dir, exposures_table_file_name, sep="/")
-exposures_table <- read.table(exposures_table_full_path, header = T, sep = "\t")
-DTable(exposures_table)
+if(!length(exposures_table_file_name) == 0){
+  exposures_table_full_path <- paste(params$aggregate_output_dir, exposures_table_file_name, sep="/")
+  exposures_table <- read.table(exposures_table_full_path, header = T, sep = "\t")
+  DTable(exposures_table)
+}else{
+  message("No SV info provided in input")
+}
 ```
 
 ### Exposures
 
-```{r}
+```{r sv_exposure_table}
 exposures_table_file_name <- list.files(path = params$aggregate_output_dir, pattern = "sv_exposures.tsv")
-exposures_table_full_path <- paste(params$aggregate_output_dir, exposures_table_file_name, sep="/")
-exposures_table <- read.table(exposures_table_full_path, header = T, sep = "\t")
-sample_names <- rownames(exposures_table)
-exposures_table_new <- cbind(sample_names, exposures_table)
-DTable(exposures_table_new)
+if(!length(exposures_table_file_name) == 0){
+  exposures_table_full_path <- paste(params$aggregate_output_dir, exposures_table_file_name, sep="/")
+  exposures_table <- read.table(exposures_table_full_path, header = T, sep = "\t")
+  sample_names <- rownames(exposures_table)
+  exposures_table_new <- cbind(sample_names, exposures_table)
+  DTable(exposures_table_new)
+}else{
+  message("No SV info provided in input")
+}
 ```
 
-```{r, include = TRUE, fig.align="center"}
+```{r sv_exposure_plot, include = TRUE, fig.align="center"}
 exposures_png_file_name <- list.files(path = params$aggregate_output_dir, pattern = "sv_exposures.png")
-exposures_png_full_path <- paste(params$aggregate_output_dir, exposures_png_file_name, sep="/")
-knitr::include_graphics(exposures_png_full_path)
+if(!length(exposures_png_file_name) == 0){
+  exposures_png_full_path <- paste(params$aggregate_output_dir, exposures_png_file_name, sep="/")
+  knitr::include_graphics(exposures_png_full_path)
+}else{
+  message("No SV info provided in input")
+}
 ```
 
 This report is genrated from [mutational-signature-aggregation-nf](https://github.com/lifebit-ai/mutational-signature-aggregation-nf) pipeline.
