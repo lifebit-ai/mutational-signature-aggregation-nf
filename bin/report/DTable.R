@@ -16,6 +16,8 @@ DTable <- function(df = df,
                    escape = FALSE,
                    font_family = "sans-serif"){ # absolut path to file
   
+  # to make sure no scientific notion while reading the table
+  options(scipen = 999)
   
   # > READING FILE INTO DF; DF TRANSFORMATIONS:
   # Read file
