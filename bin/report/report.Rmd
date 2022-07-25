@@ -43,6 +43,7 @@ Analysis aggregation results for single-nucleotide variants (SNV)
 ### Summary Stats
 
 ```{r snv_summary_table}
+options(scipen = 999)
 exposures_table_file_name <- list.files(path = params$aggregate_output_dir, pattern = "snv_summaryStats.tsv")
 if(!length(exposures_table_file_name) == 0){
   exposures_table_full_path <- paste(params$aggregate_output_dir, exposures_table_file_name, sep="/")
@@ -56,6 +57,7 @@ if(!length(exposures_table_file_name) == 0){
 ### Exposures
 
 ```{r snv_exposure_table}
+options(scipen = 999)
 exposures_table_file_name <- list.files(path = params$aggregate_output_dir, pattern = "snv_exposures.tsv")
 if(!length(exposures_table_file_name) == 0){
   exposures_table_full_path <- paste(params$aggregate_output_dir, exposures_table_file_name, sep="/")
@@ -85,6 +87,7 @@ Analysis aggregation results for structural variants (SV)
 ### Summary Stats
 
 ```{r sv_summary_table}
+options(scipen = 999)
 exposures_table_file_name <- list.files(path = params$aggregate_output_dir, pattern = "sv_summaryStats.tsv")
 if(!length(exposures_table_file_name) == 0){
   exposures_table_full_path <- paste(params$aggregate_output_dir, exposures_table_file_name, sep="/")
@@ -98,6 +101,7 @@ if(!length(exposures_table_file_name) == 0){
 ### Exposures
 
 ```{r sv_exposure_table}
+options(scipen = 999)
 exposures_table_file_name <- list.files(path = params$aggregate_output_dir, pattern = "sv_exposures.tsv")
 if(!length(exposures_table_file_name) == 0){
   exposures_table_full_path <- paste(params$aggregate_output_dir, exposures_table_file_name, sep="/")
