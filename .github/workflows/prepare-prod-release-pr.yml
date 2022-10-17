@@ -39,7 +39,7 @@ jobs:
             exit 1
           fi
       - name: Run the Action
-        uses: devops-infra/action-pull-request@v0.4.2
+        uses: devops-infra/action-pull-request@v0.5.1
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           title: Release ${{ steps.get_version.outputs.release_version }}
